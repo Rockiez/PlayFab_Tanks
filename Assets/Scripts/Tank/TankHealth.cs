@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 namespace Complete
 {
-    public class TankHealth : MonoBehaviour
+    public class TankHealth : MonoBehaviourPunCallbacks
     {
         public float m_StartingHealth = 100f;               // The amount of health each tank starts with.
         public Slider m_Slider;                             // The slider to represent how much health the tank currently has.
@@ -18,7 +19,6 @@ namespace Complete
         private float m_CurrentHealth;                      // How much health the tank currently has.
         private bool m_Dead;                                // Has the tank been reduced beyond zero health yet?
 
-
         private void Awake ()
         {
             // Instantiate the explosion prefab and get a reference to the particle system on it.
@@ -32,7 +32,7 @@ namespace Complete
         }
 
 
-        private void OnEnable()
+        public override void OnEnable()
         {
             // When the tank is enabled, reset the tank's health and whether or not it's dead.
             m_CurrentHealth = m_StartingHealth;
@@ -40,24 +40,56 @@ namespace Complete
 
             // Update the health slider's value and color.
             SetHealthUI();
+            base.OnEnable();
+
         }
 
 
-        public void TakeDamage (float amount)
+        //public void TakeDamage (float amount)
+        //{
+        //    // Reduce current health by the amount of damage done.
+        //    m_CurrentHealth -= amount;
+
+
+        //    // Change the UI elements appropriately.
+        //    SetHealthUI ();
+
+        //    // If the current health is at or below zero and it has not yet been registered, call OnDeath.
+        //    if (m_CurrentHealth <= 0f && !m_Dead)
+        //    {
+        //        OnDeath ();
+        //    }
+        //}
+
+        public void TakeDamage(float damage)
         {
-            // Reduce current health by the amount of damage done.
-            m_CurrentHealth -= amount;
 
-            // Change the UI elements appropriately.
-            SetHealthUI ();
-
-            // If the current health is at or below zero and it has not yet been registered, call OnDeath.
-            if (m_CurrentHealth <= 0f && !m_Dead)
+            if (PhotonNetwork.IsMasterClient)
             {
-                OnDeath ();
+                m_CurrentHealth -= damage;
+                photonView.RPC("updateHP", RpcTarget.All, m_CurrentHealth); 
+
             }
         }
 
+        [PunRPC]
+        public void updateHP(float newHP)
+        {
+            m_CurrentHealth = newHP;
+            SetHealthUI();
+            if (m_CurrentHealth <= 0f && !m_Dead)
+            {
+                OnDeath();
+            }
+
+        }
+        public void AddExplosionForce(float m_ExplosionForce,Vector3 position,float m_ExplosionRadius)
+        {
+            if (photonView.IsMine)
+            {
+                gameObject.GetComponent<Rigidbody>().AddExplosionForce(m_ExplosionForce, position, m_ExplosionRadius);
+            }
+        }
 
         private void SetHealthUI ()
         {
