@@ -41,7 +41,6 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 
         teamSize = PhotonNetwork.CurrentRoom.MaxPlayers / 2;
 
-        teamSize = 1;
         DisableTeamPanel();
         UpdateTeamPanel(false);
 
@@ -58,7 +57,7 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
                     { "Team","Team1" },
                     { "TeamNum",i },
                     { "isReady",false },
-                    { "Score",0 }
+                    { "PlayerNum",0 }
                 };
                 PhotonNetwork.LocalPlayer.SetCustomProperties(costomProperties);
                 break;
@@ -73,7 +72,7 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
                     { "Team","Team2" },
                     { "TeamNum",i },
                     { "isReady",false },
-                    { "Score",0 }
+                    { "PlayNum",0 }
                 };
                 PhotonNetwork.LocalPlayer.SetCustomProperties(costomProperties);
                 break;
@@ -255,11 +254,23 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
             promptMessage.text = "The team is not full, the game can't start";
             return;
         }
-        promptMessage.text = "";	
-        PhotonNetwork.CurrentRoom.IsOpen = false;	
-        pView.RPC ("LoadGameScene", RpcTarget.All, "MainScene");
+        promptMessage.text = "";
+        photonView.RPC("setPlayerNum", RpcTarget.MasterClient);
+
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        photonView.RPC ("LoadGameScene", RpcTarget.All, "MainScene");
         PhotonNetwork.IsMessageQueueRunning = false;
 
+    }
+
+
+    [PunRPC]
+    public void setPlayerNum()
+    {
+        for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
+        {
+            PhotonNetwork.PlayerList[i].SetCustomProperties(new ExitGames.Client.Photon.Hashtable(){ { "PlayerNum",i } });
+        }
     }
 
     [PunRPC]

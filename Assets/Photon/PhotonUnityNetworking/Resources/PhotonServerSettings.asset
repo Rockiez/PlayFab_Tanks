@@ -36,4 +36,8 @@ MonoBehaviour:
   - updateViewID
   - FireOther
   - updateHP
+  - getTankNum
+  - setPlayerNum
+  - AllClientFire
+  - TakeDamage
   DisableAutoOpenWizard: 1

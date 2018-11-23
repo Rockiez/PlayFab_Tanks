@@ -20,7 +20,8 @@ namespace Complete
         public TankManager[] m_Tanks;               // A collection of managers for enabling and disabling different aspects of the tanks.
         public GameObject loadingPanel;
         public Text stateText;
-        public Text scoreText;
+        public Text localScoreText;
+        public Text maxScoreText;
 
         //public TankManager m_Tank;
         //public TankManager m_OTank;
@@ -35,15 +36,62 @@ namespace Complete
         private List<Transform> transforms;
         private int otherViewID;
         private int localTankNum;
-        private int otherTankNum;
         private int loadedPlayerNum;
+        private int roomPlayerCount;
 
+        private int maxWinTank = 10;
+
+        private int tankListNum;
 
         private bool OtherTankStateLeft;
 
         private void Start()
         {
-            scoreText.text = "0 / 0";
+            roomPlayerCount = PhotonNetwork.PlayerList.Length;
+            localTankNum = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerNum"];
+            Debug.Log(localTankNum);
+            //if (PhotonNetwork.LocalPlayer.CustomProperties["TeamNum"].Equals(1))
+            //{
+            //    if (PhotonNetwork.LocalPlayer.CustomProperties["Team"].Equals("Team1"))
+            //    {
+            //        localTankNum =0;
+
+            //    }
+            //    else if (PhotonNetwork.LocalPlayer.CustomProperties["Team"].Equals("Team2"))
+            //    {
+            //        localTankNum = 1;
+            //    }
+            //}
+            //else if (PhotonNetwork.LocalPlayer.CustomProperties["TeamNum"].Equals(2))
+            //{
+            //    if (PhotonNetwork.LocalPlayer.CustomProperties["Team"].Equals("Team1"))
+            //    {
+            //        if (roomPlayerCount == 2)
+            //        {
+            //            localTankNum = 2;
+            //        }
+            //        else
+            //        {
+            //            localTankNum = 2;
+            //        }
+
+            //    }
+            //    else if (PhotonNetwork.LocalPlayer.CustomProperties["Team"].Equals("Team2"))
+            //    {
+            //        if (roomPlayerCount == 3)
+            //        {
+            //            localTankNum = 2;
+            //        }
+            //        else
+            //        {
+            //            localTankNum = 3;
+            //        }
+            //    }
+            //}
+
+            localScoreText.text = "0";
+            maxScoreText.text = "0";
+
             loadingPanel.SetActive(true);
             transforms = new List<Transform>();
             // Create the delays so they only have to be made once.
@@ -51,8 +99,6 @@ namespace Complete
             m_EndWait = new WaitForSeconds(m_EndDelay);
 
 
-            localTankNum = PhotonNetwork.IsMasterClient ? 0 : 1;
-            otherTankNum = PhotonNetwork.IsMasterClient ? 1 : 0;
             SpawnTank();
             photonView.RPC("ConfirmLoad", RpcTarget.All);
 
@@ -70,35 +116,41 @@ namespace Complete
         }
 
         [PunRPC]
+        void getTankNum()
+        {
+            ;
+        }
+
+        [PunRPC]
         void ConfirmLoad()
         {
             loadedPlayerNum++;
         }
 
+
+
         bool CheckPlayerConnected()
         {
-            return (loadedPlayerNum == m_Tanks.Length);
-
+            return (loadedPlayerNum == roomPlayerCount);
         }
 
 
         [PunRPC]
-        public void updateViewID(int viewID)
+        public void updateViewID(int viewID, int tankNum)
         {
             //int i = viewID / 1000 - 1;
             //m_Tanks[i].m_Instance = PhotonView.Find(viewID).gameObject;
 
-            m_Tanks[otherTankNum].m_Instance = PhotonView.Find(viewID).gameObject;
-            m_Tanks[otherTankNum].m_PlayerNumber = otherTankNum + 1;
-            m_Tanks[otherTankNum].m_PlayerNickName = PhotonView.Find(viewID).Owner.NickName;
-            m_Tanks[otherTankNum].Setup();
-            m_Tanks[otherTankNum].m_Movement = null;
-            m_Tanks[otherTankNum].m_Shooting = null;
+            m_Tanks[tankNum].m_Instance = PhotonView.Find(viewID).gameObject;
+            m_Tanks[tankNum].m_PlayerNumber = tankNum;
+            m_Tanks[tankNum].m_PlayerNickName = PhotonView.Find(viewID).Owner.NickName;
+            m_Tanks[tankNum].Setup();
+            m_Tanks[tankNum].m_Movement = null;
+            m_Tanks[tankNum].m_Shooting = null;
 
             var tr = PhotonView.Find(viewID).gameObject.transform;
             transforms.Add(tr);
             SetCameraTargets();
-
         }
 
 
@@ -106,7 +158,7 @@ namespace Complete
         //private void SpawnAllTanks()
         //{
         //    // For all the tanks...
-        //    for (int i = 0; i < m_Tanks.Length; i++)
+        //    for (int i = 0; i < roomPlayerCount; i++)
         //    {
         //        // ... create them, set their player number and references needed for control.
         //        m_Tanks[i].m_Instance =
@@ -131,17 +183,19 @@ namespace Complete
 
             m_Tanks[localTankNum].Setup();
             transforms.Add(m_Tanks[localTankNum].m_Instance.transform);
-            photonView.RPC("updateViewID", RpcTarget.Others, m_Tanks[localTankNum].m_Instance.GetPhotonView().ViewID);
+            photonView.RPC("updateViewID", RpcTarget.Others, m_Tanks[localTankNum].m_Instance.GetPhotonView().ViewID, localTankNum);
             Debug.Log("SpawnTank");
 
         }
 
 
 
+
+
         private void SetCameraTargets()
         {
             // Create a collection of transforms the same size as the number of tanks.
-            //Transform[] targets = new Transform[m_Tanks.Length];
+            //Transform[] targets = new Transform[roomPlayerCount];
 
             //// For each of these transforms...
             //for (int i = 0; i < targets.Length; i++)
@@ -153,7 +207,6 @@ namespace Complete
 
             //// These are the targets the camera should follow.
             //m_CameraControl.m_Targets = targets;
-            Debug.Log(transforms.Count);
             m_CameraControl.m_Targets = transforms.ToArray();
         }
 
@@ -251,7 +304,7 @@ namespace Complete
             // Get a message based on the scores and whether or not there is a game winner and display it.
             string message = EndMessage();
             m_MessageText.text = message;
-            //for (int i = 0; i < m_Tanks.Length; i++)
+            //for (int i = 0; i < roomPlayerCount; i++)
             //{
 
             //    Destroy(m_Tanks[i].m_Instance);
@@ -269,7 +322,7 @@ namespace Complete
 
             // Go through all the tanks...
 
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 // ... and if they are active, increment the counter.
 
@@ -291,7 +344,7 @@ namespace Complete
         private TankManager GetRoundWinner()
         {
             // Go through all the tanks...
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 // ... and if one of them is active, it is the winner so return it.
                 if (m_Tanks[i].m_Instance.activeSelf)
@@ -307,7 +360,7 @@ namespace Complete
         private TankManager GetGameWinner()
         {
             // Go through all the tanks...
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 // ... and if one of them has enough rounds to win the game, return it.
                 if (m_Tanks[i].m_Wins == m_NumRoundsToWin)
@@ -333,12 +386,37 @@ namespace Complete
             message += "\n\n\n\n";
 
             // Go through all the tanks and add each of their scores to the message.
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 message += m_Tanks[i].m_ColoredPlayerText + ": " + m_Tanks[i].m_Wins + " WINS\n";
             }
+            for (int i = 0; i < roomPlayerCount - 1; i++)
+            {
+                if (m_Tanks[i].m_Wins > m_Tanks[i+1].m_Wins)
+                {
+                    if (localTankNum != i)
+                    {
+                        maxWinTank = i;
+                    }
+                }
+                else
+                {
+                    if (localTankNum != i+1)
+                    {
+                        maxWinTank = i+1;
+                    }
+                }
+            }
 
-            scoreText.text = m_Tanks[localTankNum].m_Wins + " / " + m_Tanks[otherTankNum].m_Wins;
+            localScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[localTankNum].m_PlayerColor)+">" + m_Tanks[localTankNum].m_Wins + "</color>";
+            if (maxWinTank != 10)
+            {
+                maxScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[maxWinTank].m_PlayerColor) + ">" + m_Tanks[maxWinTank].m_Wins + "</color>";
+            }
+            else
+            {
+                maxScoreText.text ="0";
+            }
 
             // If there is a game winner, change the entire message to reflect that.
             if (m_GameWinner != null)
@@ -351,7 +429,7 @@ namespace Complete
         // This function is used to turn all the tanks back on and reset their positions and properties.
         private void ResetLocalTanks()
         {
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 m_Tanks[i].Reset();
             }
@@ -360,7 +438,7 @@ namespace Complete
 
         private void EnableTankControl()
         {
-            //for (int i = 0; i < m_Tanks.Length; i++)
+            //for (int i = 0; i < roomPlayerCount; i++)
             //{
             m_Tanks[localTankNum].EnableControl();
             //}
@@ -368,7 +446,7 @@ namespace Complete
 
         public void DisableTankControl()
         {
-            for (int i = 0; i < m_Tanks.Length; i++)
+            for (int i = 0; i < roomPlayerCount; i++)
             {
                 m_Tanks[localTankNum].DisableControl();
             }
@@ -391,6 +469,7 @@ namespace Complete
         }
         public void LeaveGame()
         {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
             PhotonNetwork.LoadLevel("Launch");
         }
     }

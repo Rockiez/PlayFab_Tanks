@@ -21,7 +21,7 @@ public class CreateRoomController : MonoBehaviourPunCallbacks {
     }
 	public void ClickConfirmCreateRoomButton(){
 		RoomOptions roomOptions=new RoomOptions();
-        roomOptions.MaxPlayers = 2;
+        roomOptions.MaxPlayers = 4;
 
 		//RectTransform toggleRectTransform = maxPlayerToggle.GetComponent<RectTransform> ();
 		//int childCount = toggleRectTransform.childCount;

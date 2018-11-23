@@ -39,6 +39,8 @@ namespace Complete
                 // Add an explosion force.
                 //targetRigidbody.AddExplosionForce(m_ExplosionForce, transform.position, m_ExplosionRadius);
                 // Find the TankHealth script associated with the rigidbody.
+
+
                 TankHealth targetHealth = targetRigidbody.GetComponent<TankHealth>();
 
                 // If there is no TankHealth script attached to the gameobject, go on to the next collider.
@@ -47,15 +49,10 @@ namespace Complete
 
                 // Calculate the amount of damage the target should take based on it's distance from the shell.
                 float damage = CalculateDamage(targetRigidbody.position);
-                targetHealth.AddExplosionForce(m_ExplosionForce, transform.position, m_ExplosionRadius);
+                targetHealth.AddExplosionForce(m_ExplosionForce, transform.position, m_ExplosionRadius, damage);
 
-                if (PhotonNetwork.IsMasterClient)
-                {
+                //targetHealth.TakeDamage(damage);
 
-                    // Deal this damage to the tank.
-                    targetHealth.TakeDamage(damage);
-                    //photonView.RPC("TakeDamage", RpcTarget.All, targetRigidbody.gameObject.GetPhotonView().ViewID, damage);
-                }
 
             }
 

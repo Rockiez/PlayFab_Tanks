@@ -60,16 +60,13 @@ namespace Complete
         //        OnDeath ();
         //    }
         //}
-
+        [PunRPC]
         public void TakeDamage(float damage)
         {
+            m_CurrentHealth -= damage;
+            Debug.Log(damage);
+            photonView.RPC("updateHP", RpcTarget.All, m_CurrentHealth); 
 
-            if (PhotonNetwork.IsMasterClient)
-            {
-                m_CurrentHealth -= damage;
-                photonView.RPC("updateHP", RpcTarget.All, m_CurrentHealth); 
-
-            }
         }
 
         [PunRPC]
@@ -83,12 +80,17 @@ namespace Complete
             }
 
         }
-        public void AddExplosionForce(float m_ExplosionForce,Vector3 position,float m_ExplosionRadius)
+        public void AddExplosionForce(float m_ExplosionForce,Vector3 position,float m_ExplosionRadius, float damage)
         {
-            if (photonView.IsMine)
+            if (gameObject.GetPhotonView().IsMine)
             {
                 gameObject.GetComponent<Rigidbody>().AddExplosionForce(m_ExplosionForce, position, m_ExplosionRadius);
+                photonView.RPC("TakeDamage", RpcTarget.MasterClient, damage);
+
             }
+
+
+
         }
 
         private void SetHealthUI ()
