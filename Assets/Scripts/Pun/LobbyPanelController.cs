@@ -92,7 +92,7 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
         pageMessage.text = currentPageNumber.ToString() + "/" + maxPageNumber.ToString();   
         ButtonControl();        
         ShowRoomMessage();
-        if (roomList.Count == 0)
+        if (cachedRoomList.Count == 0)
         {
             randomJoinButton.interactable = false;
         }
