@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections.Generic;
+using System.Linq;
 
 public class LobbyPanelController : MonoBehaviourPunCallbacks {
 
@@ -27,6 +28,8 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
 	private int maxPageNumber;	
 	private int roomPerPage = 4;	
 	private GameObject[] roomMessage;
+    private Dictionary<string, RoomInfo> cachedRoomList;
+
 
     public override void OnEnable()
     {
@@ -59,6 +62,7 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
         });
         if (roomPanel != null)
             roomPanel.SetActive(false);
+        cachedRoomList = new Dictionary<string, RoomInfo>();
 
         base.OnEnable();
 
@@ -79,14 +83,15 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+
         roomInfo = roomList;
+        UpdateCachedRoomList(roomList);
         maxPageNumber = (roomList.Count - 1) / roomPerPage + 1;    
         if (currentPageNumber > maxPageNumber)      
             currentPageNumber = maxPageNumber;      
         pageMessage.text = currentPageNumber.ToString() + "/" + maxPageNumber.ToString();   
         ButtonControl();        
         ShowRoomMessage();
-
         if (roomList.Count == 0)
         {
             randomJoinButton.interactable = false;
@@ -95,6 +100,38 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
             randomJoinButton.interactable = true; 
     }
 
+    private void UpdateCachedRoomList(List<RoomInfo> roomList)
+    {
+        foreach (RoomInfo info in roomList)
+        {
+            // Remove room from cached room list if it got closed, became invisible or was marked as removed
+            if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
+            {
+                if (cachedRoomList.ContainsKey(info.Name))
+                {
+                    cachedRoomList.Remove(info.Name);
+                }
+
+                continue;
+            }
+
+            // Update cached room info
+            if (cachedRoomList.ContainsKey(info.Name))
+            {
+                cachedRoomList[info.Name] = info;
+            }
+            // Add new room info to cache
+            else
+            {
+                cachedRoomList.Add(info.Name, info);
+            }
+        }
+        if (cachedRoomList != null)
+        {
+            roomInfo = cachedRoomList.Values.ToList<RoomInfo>();
+        }
+
+    }
 
     private void ShowRoomMessage(){
 		int start, end, i, j;
@@ -105,14 +142,25 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
             end = roomInfo.Count;
 
 
-		for (i = start,j = 0; i < end && roomInfo[i].MaxPlayers != 0; i++,j++){
-			RectTransform rectTransform = roomMessage [j].GetComponent<RectTransform> ();
+        for (i = start,j = 0; i < end; i++,j++){
+            RectTransform rectTransform = roomMessage [j].GetComponent<RectTransform> ();
             string roomName = roomInfo [i].Name;
 			rectTransform.GetChild (0).GetComponent<Text> ().text = (i + 1).ToString ();
-			rectTransform.GetChild (1).GetComponent<Text> ().text = roomName;
-			rectTransform.GetChild (2).GetComponent<Text> ().text 						
-                         = roomInfo [i].PlayerCount + "/" + roomInfo [i].MaxPlayers;
-			Button button = rectTransform.GetChild (3).GetComponent<Button> ();	
+			rectTransform.GetChild (1).GetComponent<Text> ().text = roomName.ToUpper();
+            //rectTransform.GetChild (2).GetComponent<Text> ().text 						
+            //= roomInfo [i].PlayerCount + "/" + roomInfo [i].MaxPlayers;
+
+            for (int q = 0; q < 4; q++)
+            {
+                var image = rectTransform.Find("JoinPlayers").GetChild(q).GetComponent<Image>();
+                image.color = new Color32(39,39,47,255);
+            }
+            for (int w = 0; w < roomInfo[i].PlayerCount; w++)
+            {
+                var image = rectTransform.Find("JoinPlayers").GetChild(w).GetComponent<Image>();
+                image.color = Color.white;
+            }
+            Button button = rectTransform.GetChild (3).GetComponent<Button> ();	
             if (roomInfo [i].PlayerCount == roomInfo [i].MaxPlayers || roomInfo [i].IsOpen == false)
                 {button.gameObject.SetActive (false);}
 			else {

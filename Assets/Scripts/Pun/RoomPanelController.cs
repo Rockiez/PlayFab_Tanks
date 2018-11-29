@@ -11,24 +11,26 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 	public GameObject roomPanel;
 	public Button backButton;
 	public Text roomName;				
-	public GameObject[] Team1;		
-	public GameObject[] Team2;		
+	public GameObject[] Column1;		
+	public GameObject[] Column2;		
 	public Button readyButton;		
 	public Text promptMessage;		
 
-	PhotonView pView;
 	int teamSize;
 	Text[] texts;
-	ExitGames.Client.Photon.Hashtable costomProperties;
+    Image image;
+    Color readyColor = new Color32(4,185,127,255);
+    Color unReadyColor = new Color32(255, 105, 81, 255);
+
+    ExitGames.Client.Photon.Hashtable costomProperties;
 
     public override void OnEnable()
     {
         //PhotonNetwork.AutomaticallySyncScene = true;
-        pView = GetComponent<PhotonView>();
 
         if (!(PhotonNetwork.IsConnected)) return;
 
-        roomName.text = "Room" + PhotonNetwork.CurrentRoom.Name;
+        roomName.text = PhotonNetwork.CurrentRoom.Name.ToUpper();
         promptMessage.text = "";
 
         backButton.onClick.RemoveAllListeners();
@@ -46,31 +48,51 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 
         for (int i = 0; i < teamSize; i++)
         {
-            if (!Team1[i].activeSelf)
+            if (!Column1[i].activeSelf)
             {
-                Team1[i].SetActive(true);
-                texts = Team1[i].GetComponentsInChildren<Text>();
+                Column1[i].SetActive(true);
+                texts = Column1[i].GetComponentsInChildren<Text>();
+                image = Column1[i].GetComponent<RectTransform>().Find("PlayStateImage").GetComponent<Image>();
                 texts[0].text = PhotonNetwork.NickName;
-                if (PhotonNetwork.IsMasterClient) texts[1].text = "Master";
-                else texts[1].text = "UnReady";
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    texts[1].text = "Master";
+                    image.color = readyColor;
+                }
+                else
+                {
+                    texts[1].text = "UnReady";
+                    image.color = unReadyColor;
+                }
+
                 costomProperties = new ExitGames.Client.Photon.Hashtable() {
-                    { "Team","Team1" },
-                    { "TeamNum",i },
+                    { "Column","Column1" },
+                    { "RowNum",i },
                     { "isReady",false },
                     { "PlayerNum",0 }
                 };
                 PhotonNetwork.LocalPlayer.SetCustomProperties(costomProperties);
                 break;
             }
-            else if (!Team2[i].activeSelf)
+            else if (!Column2[i].activeSelf)
             {
-                Team2[i].SetActive(true);
-                texts = Team2[i].GetComponentsInChildren<Text>();
-                if (PhotonNetwork.IsMasterClient) texts[1].text = "Master";
-                else texts[1].text = "UnReady";
+                Column2[i].SetActive(true);
+                texts = Column2[i].GetComponentsInChildren<Text>();
+                //if (PhotonNetwork.IsMasterClient) texts[1].text = "Master";
+                //else texts[1].text = "UnReady";
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    texts[1].text = "Master";
+                    image.color = readyColor;
+                }
+                else
+                {
+                    texts[1].text = "UnReady";
+                    image.color = unReadyColor;
+                }
                 costomProperties = new ExitGames.Client.Photon.Hashtable() {
-                    { "Team","Team2" },
-                    { "TeamNum",i },
+                    { "Column","Column2" },
+                    { "RowNum",i },
                     { "isReady",false },
                     { "PlayNum",0 }
                 };
@@ -87,15 +109,15 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
     //{
     //    GameObject go;
     //    costomProperties = newPlayer.CustomProperties;
-    //    if (costomProperties["Team"].Equals("Team1"))
+    //    if (costomProperties["Team"].Equals("Column1"))
     //    {
-    //        go = Team1[(int)costomProperties["TeamNum"]];
+    //        go = Column1[(int)costomProperties["RowNum"]];
     //        go.SetActive(true);
     //        texts = go.GetComponentsInChildren<Text>();
     //    }
     //    else
     //    {
-    //        go = Team2[(int)costomProperties["TeamNum"]];
+    //        go = Column2[(int)costomProperties["RowNum"]];
     //        go.SetActive(true);
     //        texts = go.GetComponentsInChildren<Text>();
     //    }
@@ -131,11 +153,11 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 
 
 	void DisableTeamPanel(){
-		for (int i = 0; i < Team1.Length; i++) {
-			Team1 [i].SetActive (false);
+		for (int i = 0; i < Column1.Length; i++) {
+            Column1[i].SetActive (false);
 		}
-		for (int i = 0; i < Team2.Length; i++) {
-			Team2 [i].SetActive (false);
+		for (int i = 0; i < Column2.Length; i++) {
+            Column2[i].SetActive (false);
 		    
 
         }
@@ -148,23 +170,35 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
             if (!isUpdateSelf && p.IsLocal) continue;
 
             costomProperties = p.CustomProperties;	
-			if (costomProperties ["Team"].Equals ("Team1")) {	
-				go = Team1 [(int)costomProperties ["TeamNum"]];	
+			if (costomProperties ["Column"].Equals ("Column1")) {	
+				go = Column1 [(int)costomProperties ["RowNum"]];	
 				go.SetActive (true);	
 				texts = go.GetComponentsInChildren<Text> ();
-			} else {											
-				go = Team2 [(int)costomProperties ["TeamNum"]];	
+                image = go.GetComponent<RectTransform>().Find("PlayStateImage").GetComponent<Image>();
+
+            }
+            else {											
+				go = Column2 [(int)costomProperties ["RowNum"]];	
 				go.SetActive (true);
 				texts = go.GetComponentsInChildren<Text> ();
+                image = go.GetComponent<RectTransform>().Find("PlayStateImage").GetComponent<Image>();
+            }
+            texts [0].text = p.NickName;
+            if (p.IsMasterClient)
+            {
+                texts[1].text = "Master";
+                image.color = readyColor;
+            }
+            else if ((bool)costomProperties ["isReady"]) {
+				texts [1].text = "Ready";
+                image.color = readyColor;
 			}
-            texts [0].text = p.NickName;	
-			if(p.IsMasterClient)			
-				texts[1].text="Master";	
-			else if ((bool)costomProperties ["isReady"]) {
-				texts [1].text = "Ready";	
-			} else
-				texts [1].text = "UnReady";	
-		}
+            else
+            {
+                texts[1].text = "UnReady";
+                image.color = unReadyColor;
+            }
+        }
 	}
     
 	void ReadyButtonControl(){
@@ -186,59 +220,65 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 		}
 	}
     
-	public void ClickSwitchButton(){
-        costomProperties = PhotonNetwork.LocalPlayer.CustomProperties;
-		if ((bool)costomProperties ["isReady"]) {			
-            promptMessage.text="Cannot switch teams in preparation state";		
-			return;											
-		}
-		bool isSwitched = false;		
-		if (costomProperties ["Team"].ToString ().Equals ("Team1")) {	
-			for (int i = 0; i < teamSize; i++) {
-				if (!Team2 [i].activeSelf) {	
-					isSwitched = true;	
-					Team1 [(int)costomProperties ["TeamNum"]].SetActive (false);
-					texts = Team2 [i].GetComponentsInChildren<Text> ();	
-                    texts [0].text = PhotonNetwork.NickName;	
-					if(PhotonNetwork.IsMasterClient)texts[1].text="Master";		
-					else texts [1].text = "UnReady";		
-					Team2 [i].SetActive (true);	
-					costomProperties = new ExitGames.Client.Photon.Hashtable ()	
-					{ { "Team","Team2" }, { "TeamNum",i } };
-                    PhotonNetwork.LocalPlayer.SetCustomProperties (costomProperties);	
-					break;
-				}
-			}
-		} else if (costomProperties ["Team"].ToString ().Equals ("Team2")) {
-			for (int i = 0; i < teamSize; i++) {						
-				if (!Team1 [i].activeSelf) {						
-					isSwitched = true;			
-					Team2 [(int)(costomProperties ["TeamNum"])].SetActive (false);	
-					texts = Team1 [i].GetComponentsInChildren<Text> ();			
-                    texts [0].text = PhotonNetwork.NickName;				
-					if(PhotonNetwork.IsMasterClient)texts[1].text="Master";			
-					else texts [1].text = "UnReady";							
-					Team1 [i].SetActive (true);		
-					costomProperties = new ExitGames.Client.Photon.Hashtable ()	
-					{ { "Team","Team1" }, { "TeamNum",i } };
-                    PhotonNetwork.LocalPlayer.SetCustomProperties (costomProperties);
-					break;
-				}
-			}
-		}
-		if (!isSwitched)
-            promptMessage.text = "The other team is full and cannot switch";
-		else
-			promptMessage.text = "";
-	}
+	//public void ClickSwitchButton(){
+ //       costomProperties = PhotonNetwork.LocalPlayer.CustomProperties;
+	//	if ((bool)costomProperties ["isReady"]) {			
+ //           promptMessage.text="Cannot switch teams in preparation state";		
+	//		return;											
+	//	}
+	//	bool isSwitched = false;		
+	//	if (costomProperties ["Column"].ToString ().Equals ("Column1")) {	
+	//		for (int i = 0; i < teamSize; i++) {
+	//			if (!Column2 [i].activeSelf) {	
+	//				isSwitched = true;	
+	//				Column1 [(int)costomProperties ["RowNum"]].SetActive (false);
+	//				texts = Column2 [i].GetComponentsInChildren<Text> ();	
+ //                   texts [0].text = PhotonNetwork.NickName;	
+	//				if(PhotonNetwork.IsMasterClient)texts[1].text="Master";		
+	//				else texts [1].text = "UnReady";		
+	//				Column2 [i].SetActive (true);	
+	//				costomProperties = new ExitGames.Client.Photon.Hashtable ()	
+	//				{ { "Column","Column2" }, { "RowNum",i } };
+ //                   PhotonNetwork.LocalPlayer.SetCustomProperties (costomProperties);	
+	//				break;
+	//			}
+	//		}
+	//	} else if (costomProperties ["Column"].ToString ().Equals ("Column2")) {
+	//		for (int i = 0; i < teamSize; i++) {						
+	//			if (!Column1 [i].activeSelf) {						
+	//				isSwitched = true;			
+	//				Column2 [(int)(costomProperties ["RowNum"])].SetActive (false);	
+	//				texts = Column1 [i].GetComponentsInChildren<Text> ();			
+ //                   texts [0].text = PhotonNetwork.NickName;				
+	//				if(PhotonNetwork.IsMasterClient)texts[1].text="Master";			
+	//				else texts [1].text = "UnReady";							
+	//				Column1 [i].SetActive (true);		
+	//				costomProperties = new ExitGames.Client.Photon.Hashtable ()	
+	//				{ { "Column","Column1" }, { "RowNum",i } };
+ //                   PhotonNetwork.LocalPlayer.SetCustomProperties (costomProperties);
+	//				break;
+	//			}
+	//		}
+	//	}
+	//	if (!isSwitched)
+ //           promptMessage.text = "The other Column is full and cannot switch";
+	//	else
+	//		promptMessage.text = "";
+	//}
     
 	public void ClickReadyButton(){
         bool isReady = (bool)PhotonNetwork.LocalPlayer.CustomProperties ["isReady"];	
 		costomProperties = new ExitGames.Client.Photon.Hashtable (){ { "isReady",!isReady } };	
         PhotonNetwork.LocalPlayer.SetCustomProperties (costomProperties);
 		Text readyButtonText = readyButton.GetComponentInChildren<Text> ();
-	    if (isReady) readyButtonText.text = "Ready";
-	    else readyButtonText.text = "Cancel Ready";
+        if (isReady)
+        {
+            readyButtonText.text = "Ready";
+        }
+        else
+        {
+            readyButtonText.text = "Cancel Ready";
+        }
 	}
     
 	public void ClickStartGameButton(){
@@ -251,7 +291,7 @@ public class RoomPanelController : MonoBehaviourPunCallbacks{
 		}
         if (PhotonNetwork.PlayerList.Length < 2)
         {
-            promptMessage.text = "The team is not full, the game can't start";
+            promptMessage.text = "The Column is not full, the game can't start";
             return;
         }
         promptMessage.text = "";

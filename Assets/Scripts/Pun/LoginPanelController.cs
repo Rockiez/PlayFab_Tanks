@@ -65,7 +65,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks {
 	}
 	
 	public void ClickExitGameButton(){
-		Application.Quit ();			
+		Application.Quit ();
 	}
 
 

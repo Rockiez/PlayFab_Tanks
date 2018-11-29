@@ -183,7 +183,7 @@ namespace Photon.Pun.Demo.SlotRacer
 
             if (this.photonView.IsMine)
             {
-                this.m_input = Input.GetAxis("Vertical");
+                this.m_input = Input.GetAxis("VerticalUI");
                 if (this.m_input == 0f)
                 {
                     this.CurrentSpeed -= Time.deltaTime * this.Drag;

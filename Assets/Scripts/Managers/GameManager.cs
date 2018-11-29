@@ -20,8 +20,13 @@ namespace Complete
         public TankManager[] m_Tanks;               // A collection of managers for enabling and disabling different aspects of the tanks.
         public GameObject loadingPanel;
         public Text stateText;
-        public Text localScoreText;
-        public Text maxScoreText;
+        //public Text localScoreText;
+        //public Text maxScoreText;
+
+        public GameObject scorePanel;
+        public GameObject[] Players;
+
+
 
         //public TankManager m_Tank;
         //public TankManager m_OTank;
@@ -39,7 +44,7 @@ namespace Complete
         private int loadedPlayerNum;
         private int roomPlayerCount;
 
-        private int maxWinTank = 10;
+        //private int maxWinTank = 10;
 
         private int tankListNum;
 
@@ -50,6 +55,9 @@ namespace Complete
             roomPlayerCount = PhotonNetwork.PlayerList.Length;
             localTankNum = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerNum"];
             Debug.Log(localTankNum);
+
+
+
             //if (PhotonNetwork.LocalPlayer.CustomProperties["TeamNum"].Equals(1))
             //{
             //    if (PhotonNetwork.LocalPlayer.CustomProperties["Team"].Equals("Team1"))
@@ -89,9 +97,9 @@ namespace Complete
             //    }
             //}
 
-            localScoreText.text = "0";
-            maxScoreText.text = "0";
-
+            //localScoreText.text = "0";
+            //maxScoreText.text = "0";
+            scorePanel.SetActive(false);
             loadingPanel.SetActive(true);
             transforms = new List<Transform>();
             // Create the delays so they only have to be made once.
@@ -113,12 +121,8 @@ namespace Complete
         void Update()
         {
             stateText.text = PhotonNetwork.NetworkClientState.ToString();
-        }
+            scorePanel.SetActive(Input.GetKey(KeyCode.Tab));
 
-        [PunRPC]
-        void getTankNum()
-        {
-            ;
         }
 
         [PunRPC]
@@ -260,7 +264,25 @@ namespace Complete
             // Increment the round number and display text showing the players what round it is.
             m_RoundNumber++;
             m_MessageText.text = "ROUND " + m_RoundNumber;
+            for (int i = 0; i < 4; i++)
+            {
+                Players[i].SetActive(false);
+            }
+            for (int i = 0; i < roomPlayerCount; i++)
+            {
+                Players[i].SetActive(true);
+                Players[i].GetComponentsInChildren<Image>()[0].color = new Color(m_Tanks[i].m_PlayerColor.r, 
+                    m_Tanks[i].m_PlayerColor.g, 
+                    m_Tanks[i].m_PlayerColor.b,
+                    1);
+
+                Debug.Log(i);
+                Debug.Log(Players[i].GetComponentsInChildren<Image>()[0].color);
+                Players[i].GetComponentsInChildren<Text>()[0].text ="Name:  "+ m_Tanks[i].m_PlayerNickName;
+            }
             loadingPanel.SetActive(false);
+
+
             // Wait for the specified length of time until yielding control back to the game loop.
             yield return m_StartWait;
         }
@@ -389,34 +411,36 @@ namespace Complete
             for (int i = 0; i < roomPlayerCount; i++)
             {
                 message += m_Tanks[i].m_ColoredPlayerText + ": " + m_Tanks[i].m_Wins + " WINS\n";
-            }
-            for (int i = 0; i < roomPlayerCount - 1; i++)
-            {
-                if (m_Tanks[i].m_Wins > m_Tanks[i+1].m_Wins)
-                {
-                    if (localTankNum != i)
-                    {
-                        maxWinTank = i;
-                    }
-                }
-                else
-                {
-                    if (localTankNum != i+1)
-                    {
-                        maxWinTank = i+1;
-                    }
-                }
-            }
+                Players[i].GetComponentsInChildren<Text>()[1].text = "Score: " + m_Tanks[i].m_Wins;
 
-            localScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[localTankNum].m_PlayerColor)+">" + m_Tanks[localTankNum].m_Wins + "</color>";
-            if (maxWinTank != 10)
-            {
-                maxScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[maxWinTank].m_PlayerColor) + ">" + m_Tanks[maxWinTank].m_Wins + "</color>";
             }
-            else
-            {
-                maxScoreText.text ="0";
-            }
+            //for (int i = 0; i < roomPlayerCount - 1; i++)
+            //{
+            //    if (m_Tanks[i].m_Wins > m_Tanks[i+1].m_Wins)
+            //    {
+            //        if (localTankNum != i)
+            //        {
+            //            maxWinTank = i;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (localTankNum != i+1)
+            //        {
+            //            maxWinTank = i+1;
+            //        }
+            //    }
+            //}
+
+            //localScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[localTankNum].m_PlayerColor)+">" + m_Tanks[localTankNum].m_Wins + "</color>";
+            //if (maxWinTank != 10)
+            //{
+            //    maxScoreText.text = "<color=#" + ColorUtility.ToHtmlStringRGB(m_Tanks[maxWinTank].m_PlayerColor) + ">" + m_Tanks[maxWinTank].m_Wins + "</color>";
+            //}
+            //else
+            //{
+            //    maxScoreText.text ="0";
+            //}
 
             // If there is a game winner, change the entire message to reflect that.
             if (m_GameWinner != null)
