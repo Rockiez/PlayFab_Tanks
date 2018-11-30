@@ -1851,6 +1851,12 @@ namespace PlayFab.AdminModels
         FacebookInstantGamesIdNotLinked,
         InvalidFacebookInstantGamesSignature,
         FacebookInstantGamesAuthNotConfiguredForTitle,
+        EntityProfileConstraintValidationFailed,
+        TelemetryIngestionKeyPending,
+        TelemetryIngestionKeyNotFound,
+        StatisticTagRequired,
+        StatisticTagInvalid,
+        DataIntegrityError,
         MatchmakingEntityInvalid,
         MatchmakingPlayerAttributesInvalid,
         MatchmakingCreateRequestMissing,
@@ -1885,7 +1891,10 @@ namespace PlayFab.AdminModels
         MatchmakingMemberProfileInvalid,
         WriteAttemptedDuringExport,
         NintendoSwitchDeviceIdNotLinked,
-        MatchmakingNotEnabled
+        MatchmakingNotEnabled,
+        MatchmakingGetStatisticsIdentityInvalid,
+        MatchmakingStatisticsIdMissing,
+        CannotEnableMultiplayerServersForTitle
     }
 
     [Serializable]
@@ -2114,11 +2123,6 @@ namespace PlayFab.AdminModels
         /// region in which the Game Server Instance is running
         /// </summary>
         public Region? Region;
-        /// <summary>
-        /// IPV4 address of the game server instance
-        /// </summary>
-        [Obsolete("Use 'ServerIPV4Address' instead", true)]
-        public string ServerAddress;
         /// <summary>
         /// IPV4 address of the server
         /// </summary>
