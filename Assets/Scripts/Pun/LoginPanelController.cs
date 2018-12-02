@@ -17,7 +17,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks {
     void Start() {
         if (!(PhotonNetwork.IsConnected)) {
 			SetLoginPanelActive ();	
-			username.text = PlayerPrefs.GetString ("Username");	
+			//username.text = PlayerPrefs.GetString ("Username");	
 		} 
 		else
 			SetLobbyPanelActive ();
