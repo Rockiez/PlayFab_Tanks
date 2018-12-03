@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using PlayFab;
 using PlayFab.ClientModels;
+using System;
 
 public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallbacks
 {
@@ -39,6 +40,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
         PlayFabAuthService.OnLoginSuccess += RequestPhotonToken;
         PlayFabAuthService.OnPlayFabError += OnPlayFabError;
+        PlayFabAuthService.OnLogMessage += LogMessage;
     }
 
 
@@ -66,35 +68,25 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 		SetLobbyPanelActive ();
         _AuthService.Email = Username.text;
         _AuthService.Password = Password.text;
-        LogMessage("Email:*"+Username.text +"*   Password:*"+ Password.text+"*");
+        //LogMessage("Email:*"+Username.text +"*   Password:*"+ Password.text+"*");
         _AuthService.AuthenticateEmailPassword();
 
         PhotonNetwork.GameVersion = "1.0";
-        if (!PhotonNetwork.IsConnected)						
-            PhotonNetwork.ConnectUsingSettings ();		
-		//if (username.text == "")							
-		//	username.text = "Ghost" + Random.Range (1, 9999);
-  //      PhotonNetwork.LocalPlayer.NickName = username.text;			
-		//PlayerPrefs.SetString ("Username", username.text);	
-	}
+
+
+    }
 
     public void ClickGuestButton()
     {
         SetLobbyPanelActive();
 
         PhotonNetwork.GameVersion = "1.0";
-        if (!PhotonNetwork.IsConnected)
-            PhotonNetwork.ConnectUsingSettings();
+        //if (!PhotonNetwork.IsConnected)
+            //PhotonNetwork.ConnectUsingSettings();
         _AuthService.SilentlyAuthenticate();
 
+        //PhotonNetwork.LocalPlayer.NickName = (PlayFabAuthService.PlayFabId.Split(new Char[] { '-' }))[0];
 
-        //PhotonNetwork.LocalPlayer.NickName = PlayFabAuthService.PlayFabId;
-
-
-        //if (username.text == "")							
-        //	username.text = "Ghost" + Random.Range (1, 9999);
-        //      PhotonNetwork.LocalPlayer.NickName = username.text;			
-        //PlayerPrefs.SetString ("Username", username.text);	
     }
 
 
@@ -142,13 +134,24 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
         //We finally tell Photon to use this authentication parameters throughout the entire application.
         PhotonNetwork.AuthValues = customAuth;
+
+        if (!PhotonNetwork.IsConnected)
+            PhotonNetwork.ConnectUsingSettings();
+
+        PhotonNetwork.LocalPlayer.NickName = (PlayFabAuthService.PlayFabId.Split(new Char[] { '-' }))[0];
+
     }
+
+
+
     private void OnPlayFabError(PlayFabError obj)
     {
         LogMessage(obj.GenerateErrorReport());
     }
     public void LogMessage(string message)
     {
+        userMessage.GetComponentInChildren<Text>().text
+           = message;
         Debug.Log("PlayFab + Photon Example: " + message);
     }
     public override void OnCustomAuthenticationFailed(string debugMessage)

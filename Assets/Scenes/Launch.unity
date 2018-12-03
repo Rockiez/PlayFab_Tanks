@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -490,6 +490,40 @@ Prefab:
         type: 2}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ClickGuestButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 114238368378563932, guid: 3620f8410872b2145b3b67f81b4e2366,
+        type: 2}
+      propertyPath: m_Text
+      value: renhe@wicresoft.com
+      objectReference: {fileID: 0}
+    - target: {fileID: 114686458804143416, guid: 3620f8410872b2145b3b67f81b4e2366,
+        type: 2}
+      propertyPath: m_Text
+      value: 199658Renhe
+      objectReference: {fileID: 0}
+    - target: {fileID: 22405026, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_SizeDelta.x
+      value: 950
+      objectReference: {fileID: 0}
+    - target: {fileID: 22405026, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_AnchoredPosition.x
+      value: -500
+      objectReference: {fileID: 0}
+    - target: {fileID: 11462304, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_Text
+      value: message
+      objectReference: {fileID: 0}
+    - target: {fileID: 22405026, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_SizeDelta.y
+      value: 230.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 22405026, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_AnchoredPosition.y
+      value: -120
+      objectReference: {fileID: 0}
+    - target: {fileID: 11462304, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}
+      propertyPath: m_FontData.m_Alignment
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3620f8410872b2145b3b67f81b4e2366, type: 2}

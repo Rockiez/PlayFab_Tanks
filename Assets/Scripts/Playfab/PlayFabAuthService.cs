@@ -14,6 +14,9 @@ public class PlayFabAuthService{
     public delegate void PlayFabErrorEvent(PlayFabError error);
     public static event PlayFabErrorEvent OnPlayFabError;
 
+    public delegate void LogMessage(string message);
+    public static event LogMessage OnLogMessage;
+
     public static string PlayFabId { get { return _playFabId; } }
     private static string _playFabId;
     public static string SessionTicket { get { return _sessionTicket; } }
@@ -66,6 +69,10 @@ public class PlayFabAuthService{
             {
                 //report login result back to subscriber
                 OnLoginSuccess.Invoke(result);
+                if (OnLogMessage != null)
+                {
+                    OnLogMessage.Invoke("AuthenticateEmailPassword");
+                }
             }
         }, (error) =>
         {
@@ -94,6 +101,7 @@ public class PlayFabAuthService{
                 {
                     Error = PlayFabErrorCode.UnknownError,
                     ErrorMessage = "Silent Authentication by Device failed"
+
                 });
             }
 
@@ -116,6 +124,10 @@ public class PlayFabAuthService{
 
                     //Report login result back to subscriber.
                     OnLoginSuccess.Invoke(result);
+                    if (OnLogMessage != null)
+                    {
+                        OnLogMessage.Invoke("AddUsernamePassword");
+                    }
                 }
             }, (error) => {
                 if (OnPlayFabError != null)
@@ -135,7 +147,7 @@ public class PlayFabAuthService{
     {
         PlayFabClientAPI.RegisterPlayFabUser(new RegisterPlayFabUserRequest()
         {
-            Username = !string.IsNullOrEmpty(Username) ? Username : result.PlayFabId, //Because it is required & Unique and not supplied by User.
+            Username = Email.Replace("@","").Replace(".",""), //Because it is required & Unique and not supplied by User.
             Email = Email,
             Password = Password,
         }, (addResult) =>
@@ -148,6 +160,11 @@ public class PlayFabAuthService{
 
                 //Report login result back to subscriber.
                 OnLoginSuccess.Invoke(result);
+                if (OnLogMessage != null)
+                {
+                    OnLogMessage.Invoke("RegisterAuthenticate");
+                }
+                AuthenticateEmailPassword();
             }
         }, (Registererror) =>
         {
@@ -185,9 +202,17 @@ public class PlayFabAuthService{
                 //report login result back to the caller
                 callback.Invoke(result);
             }
+            if (OnLogMessage != null)
+            {
+                OnLogMessage.Invoke("SilentlyAuthenticate");
+            }
+
         }, (error) =>
         {
-            LogMessage("PlayFab authenticating using Custom ID...");
+            if (OnLogMessage != null)
+            {
+                OnLogMessage.Invoke("PlayFab authenticating using Custom ID...");
+            }
             //report errro back to the subscriber
             if (callback == null && OnPlayFabError != null)
             {
@@ -206,10 +231,4 @@ public class PlayFabAuthService{
 
 
 
-
-
-    public void LogMessage(string message)
-    {
-        Debug.Log("PlayFab + Photon Example: " + message);
-    }
 }
