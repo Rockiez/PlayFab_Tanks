@@ -38,7 +38,7 @@ namespace Photon.Pun
         {
             HasVoice = Type.GetType("Photon.Voice.VoiceClient, Assembly-CSharp") != null || Type.GetType("Photon.Voice.VoiceClient, Assembly-CSharp-firstpass") != null || Type.GetType("Photon.Voice.VoiceClient, PhotonVoice.API") != null;
             HasChat = Type.GetType("Photon.Chat.ChatClient, Assembly-CSharp") != null || Type.GetType("Photon.Chat.ChatClient, Assembly-CSharp-firstpass") != null || Type.GetType("Photon.Chat.ChatClient, PhotonChat") != null;
-            HasPun = Type.GetType("Photon.Pun.PhotonNetworking, Assembly-CSharp") != null || Type.GetType("Photon.Pun.PhotonNetworking, Assembly-CSharp-firstpass") != null || Type.GetType("Photon.Pun.PhotonNetworking, PhotonUnityNetworking") != null;
+            HasPun = Type.GetType("Photon.Pun.PhotonNetwork, Assembly-CSharp") != null || Type.GetType("Photon.Pun.PhotonNetwork, Assembly-CSharp-firstpass") != null || Type.GetType("Photon.Pun.PhotonNetwork, PhotonUnityNetworking") != null;
             PhotonEditorUtils.HasCheckedProducts = true;
 
             if (HasPun)
@@ -162,10 +162,24 @@ namespace Photon.Pun
 
             return GetParent(dir.Parent.FullName, parentName);
         }
+
+		/// <summary>
+		/// Check if a GameObject is a prefab asset or part of a prefab asset, as opposed to an instance in the scene hierarchy
+		/// </summary>
+		/// <returns><c>true</c>, if a prefab asset or part of it, <c>false</c> otherwise.</returns>
+		/// <param name="go">The GameObject to check</param>
+		public static bool IsPrefab(GameObject go)
+		{
+			#if UNITY_2018_3_OR_NEWER
+				return UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(go) != null;
+			#else
+				return EditorUtility.IsPersistent(go);
+			#endif
+		}
     }
 
 
-    public class CleanUpDefinesOnPunDelete : AssetModificationProcessor
+    public class CleanUpDefinesOnPunDelete : UnityEditor.AssetModificationProcessor
     {
         public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions rao)
         {

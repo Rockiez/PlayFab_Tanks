@@ -12,32 +12,31 @@ MonoBehaviour:
   m_Name: PhotonServerSettings
   m_EditorClassIdentifier: 
   AppSettings:
-    AppIdRealtime: 1a2bed7f-8cec-42d0-99b5-e92320194e22
+    AppIdRealtime: 850afc9d-493b-4510-a422-9bc7d0d03cea
     AppIdChat: 
     AppIdVoice: 
     AppVersion: 1.0
     UseNameServer: 1
-    FixedRegion: 
+    FixedRegion: in
     Server: 
     Port: 0
     Protocol: 0
     EnableLobbyStatistics: 0
-    NetworkLogging: 1
+    NetworkLogging: 3
   StartInOfflineMode: 0
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   RpcList:
+  - AllClientFire
+  - ConfirmLoad
   - DestroySpaceship
   - Fire
-  - RespawnSpaceship
-  - LoadGameScene
-  - ConfirmLoad
-  - updateViewID
   - FireOther
-  - updateHP
-  - getTankNum
+  - LoadGameScene
+  - RespawnSpaceship
   - setPlayerNum
-  - AllClientFire
   - TakeDamage
+  - updateHP
+  - updateViewID
   DisableAutoOpenWizard: 1

@@ -124,30 +124,42 @@ namespace Photon.Realtime
     {
         /// <summary>No error was tracked.</summary>
         None,
-        /// <summary>OnStatusChanged: The CCUs count of your Photon Server License is exausted (temporarily).</summary>
-        DisconnectByServerUserLimit,
         /// <summary>OnStatusChanged: The server is not available or the address is wrong. Make sure the port is provided and the server is up.</summary>
         ExceptionOnConnect,
-        /// <summary>OnStatusChanged: The server disconnected this client. Most likely the server's send buffer is full (receiving too much from other clients).</summary>
-        DisconnectByServer,
-        /// <summary>OnStatusChanged: This client detected that the server's responses are not received in due time. Maybe you send / receive too much?</summary>
-        TimeoutDisconnect,
         /// <summary>OnStatusChanged: Some internal exception caused the socket code to fail. Contact Exit Games.</summary>
         Exception,
-        /// <summary>OnOperationResponse: Authenticate in the Photon Cloud with invalid AppId. Update your subscription or contact Exit Games.</summary>
-        InvalidAuthentication,
-        /// <summary>OnOperationResponse: Authenticate (temporarily) failed when using a Photon Cloud subscription without CCU Burst. Update your subscription.</summary>
-        MaxCcuReached,
-        /// <summary>OnOperationResponse: Authenticate when the app's Photon Cloud subscription is locked to some (other) region(s). Update your subscription or master server address.</summary>
-        InvalidRegion,
-        /// <summary>OnOperationResponse: Operation that's (currently) not available for this client (not authorized usually). Only tracked for op Authenticate.</summary>
-        OperationNotAllowedInCurrentState,
-        /// <summary>OnOperationResponse: Authenticate in the Photon Cloud with invalid client values or custom authentication setup in Cloud Dashboard.</summary>
-        CustomAuthenticationFailed,
+
+        /// <summary>OnStatusChanged: The server disconnected this client due to timing out (missing acknowledgements from the client).</summary>
+        ServerTimeout,
+        /// <summary>OnStatusChanged: The server disconnected this client. Most likely the server's send buffer is full (receiving too much from other clients).</summary>
+        [Obsolete("Replace with: ServerTimeout (same value).")]
+        DisconnectByServer = ServerTimeout,
+        /// <summary>OnStatusChanged: This client detected that the server's responses are not received in due time.</summary>
+        ClientTimeout,
+        /// <summary>OnStatusChanged: This client detected that the server's responses are not received in due time.</summary>
+        [Obsolete("Replace with: ClientTimeout (same value).")]
+        TimeoutDisconnect = ClientTimeout,
         /// <summary>OnStatusChanged: The server disconnected this client from within the room's logic (the C# code).</summary>
         DisconnectByServerLogic,
+        /// <summary>OnStatusChanged: The server disconnected this client for unknown reasons.</summary>
+        DisconnectByServerReasonUnknown,
+
+        /// <summary>OnOperationResponse: Authenticate in the Photon Cloud with invalid AppId. Update your subscription or contact Exit Games.</summary>
+        InvalidAuthentication,
+        /// <summary>OnOperationResponse: Authenticate in the Photon Cloud with invalid client values or custom authentication setup in Cloud Dashboard.</summary>
+        CustomAuthenticationFailed,
         /// <summary>The authentication ticket should provide access to any Photon Cloud server without doing another authentication-service call. However, the ticket expired.</summary>
         AuthenticationTicketExpired,
+        /// <summary>OnOperationResponse: Authenticate (temporarily) failed when using a Photon Cloud subscription without CCU Burst. Update your subscription.</summary>
+        MaxCcuReached,
+        /// <summary>OnStatusChanged: The current CCUs exceed the CCUs of your subscription (or license). Get a suitable subscription (some include overage).</summary>
+        [Obsolete("Replace with: MaxCcuReached (same value).")]
+        DisconnectByServerUserLimit = MaxCcuReached,
+        /// <summary>OnOperationResponse: Authenticate when the app's Photon Cloud subscription is locked to some (other) region(s). Update your subscription or master server address.</summary>
+        InvalidRegion,
+
+        /// <summary>OnOperationResponse: Operation that's (currently) not available for this client (not authorized usually). Only tracked for op Authenticate.</summary>
+        OperationNotAllowedInCurrentState,
         /// <summary>OnStatusChanged: The client disconnected from within the logic (the C# code).</summary>
         DisconnectByClientLogic
     }
@@ -820,6 +832,10 @@ namespace Photon.Realtime
         /// <summary>
         /// Can be used to return to a room quickly, by directly reconnecting to a game server to rejoin a room.
         /// </summary>
+        /// <remarks>
+        /// Rejoining room will not send any player properties. Instead client will receive up-to-date ones from server.
+        /// If you want to set new player properties, do it once rejoined.
+        /// </remarks>
         /// <returns>False, if the conditions are not met. Then, this client does not attempt the ReconnectAndRejoin.</returns>
         public bool ReconnectAndRejoin()
         {
@@ -1327,6 +1343,9 @@ namespace Photon.Realtime
         ///
         /// This method will fail on the server, when the room does not exist, can't be loaded (persistent rooms) or
         /// when the userId is not in the player list of this room. This will lead to a callback OnJoinRoomFailed.
+        /// 
+        /// Rejoining room will not send any player properties. Instead client will receive up-to-date ones from server.
+        /// If you want to set new player properties, do it once rejoined.
         /// </remarks>
         public bool OpRejoinRoom(string roomName)
         {
@@ -1974,11 +1993,19 @@ namespace Photon.Realtime
                         {
                             this.State = ClientState.Joining;
 
-                            Hashtable allProps = new Hashtable();
-                            allProps.Merge(this.LocalPlayer.CustomProperties);
-                            allProps[ActorProperties.PlayerName] = this.LocalPlayer.NickName;
+                            if (this.enterRoomParamsCache.RejoinOnly)
+                            {
+                                this.enterRoomParamsCache.PlayerProperties = null;
+                            }
+                            else
+                            {
+                                Hashtable allProps = new Hashtable();
+                                allProps.Merge(this.LocalPlayer.CustomProperties);
+                                allProps[ActorProperties.PlayerName] = this.LocalPlayer.NickName;
 
-                            this.enterRoomParamsCache.PlayerProperties = allProps;
+                                this.enterRoomParamsCache.PlayerProperties = allProps;
+                            }
+                            
                             this.enterRoomParamsCache.OnGameServer = true;
 
                             if (this.lastJoinType == JoinType.JoinRoom || this.lastJoinType == JoinType.JoinRandomRoom || this.lastJoinType == JoinType.JoinOrCreateRoom)
@@ -2293,6 +2320,11 @@ namespace Photon.Realtime
                             this.ConnectToGameServer();     // this connects the client with the Game Server (when joining/creating a room)
                             break;
 
+                        case ClientState.Disconnected:
+                            // this client is already Disconnected, so no further action is needed.
+                            // this.DebugReturn(DebugLevel.INFO, "LBC.OnStatusChanged(Disconnect) this.State: " + this.State + ". Server: " + this.Server);
+                            break;
+
                         default:
                             string stacktrace = "";
                             #if DEBUG && !NETFX_CORE
@@ -2316,7 +2348,7 @@ namespace Photon.Realtime
                     {
                         this.AuthValues.Token = null; // when leaving the server, invalidate the secret (but not the auth values)
                     }
-                    this.DisconnectedCause = DisconnectCause.DisconnectByServerUserLimit;
+                    this.DisconnectedCause = DisconnectCause.MaxCcuReached;
                     this.State = ClientState.Disconnected;
                     break;
                 case StatusCode.ExceptionOnConnect:
@@ -2329,13 +2361,14 @@ namespace Photon.Realtime
                     this.State = ClientState.Disconnected;
                     this.ConnectionCallbackTargets.OnDisconnected(this.DisconnectedCause);
                     break;
-                case StatusCode.DisconnectByServer:
+                case StatusCode.DisconnectByServerTimeout:
                     if (this.AuthValues != null)
                     {
                         this.AuthValues.Token = null; // when leaving the server, invalidate the secret (but not the auth values)
                     }
-                    this.DisconnectedCause = DisconnectCause.DisconnectByServer;
+                    this.DisconnectedCause = DisconnectCause.ServerTimeout;
                     this.State = ClientState.Disconnected;
+                    this.ConnectionCallbackTargets.OnDisconnected(this.DisconnectedCause);
                     break;
                 case StatusCode.DisconnectByServerLogic:
                     if (this.AuthValues != null)
@@ -2346,12 +2379,21 @@ namespace Photon.Realtime
                     this.State = ClientState.Disconnected;
                     this.ConnectionCallbackTargets.OnDisconnected(this.DisconnectedCause);
                     break;
+                case StatusCode.DisconnectByServerReasonUnknown:
+                    if (this.AuthValues != null)
+                    {
+                        this.AuthValues.Token = null; // when leaving the server, invalidate the secret (but not the auth values)
+                    }
+                    this.DisconnectedCause = DisconnectCause.DisconnectByServerReasonUnknown;
+                    this.State = ClientState.Disconnected;
+                    this.ConnectionCallbackTargets.OnDisconnected(this.DisconnectedCause);
+                    break;
                 case StatusCode.TimeoutDisconnect:
                     if (this.AuthValues != null)
                     {
                         this.AuthValues.Token = null; // when leaving the server, invalidate the secret (but not the auth values)
                     }
-                    this.DisconnectedCause = DisconnectCause.TimeoutDisconnect;
+                    this.DisconnectedCause = DisconnectCause.ClientTimeout;
                     this.State = ClientState.Disconnected;
                     this.ConnectionCallbackTargets.OnDisconnected(this.DisconnectedCause);
                     break;

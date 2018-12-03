@@ -97,7 +97,8 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
             randomJoinButton.interactable = false;
         }
         else
-            randomJoinButton.interactable = true; 
+            randomJoinButton.interactable = true;
+
     }
 
     private void UpdateCachedRoomList(List<RoomInfo> roomList)

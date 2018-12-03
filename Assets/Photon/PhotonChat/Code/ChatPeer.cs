@@ -49,51 +49,50 @@ namespace Photon.Chat
         }
 
 
+
+        // Sets up the socket implementations to use, depending on platform
         [Conditional("SUPPORTED_UNITY")]
         private void ConfigUnitySockets()
         {
-            #pragma warning disable 0162    // the library variant defines if we should use PUN's SocketUdp variant (at all)
-            if (PhotonPeer.NoSocket)
+            Type websocketType = null;
+            #if UNITY_XBOXONE && !UNITY_EDITOR
+            websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcpNativeDynamic, PhotonWebSocket", false);
+            if (websocketType == null)
             {
-                #if !UNITY_EDITOR && (UNITY_PS3 || UNITY_ANDROID)
-                this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdpNativeDynamic);
-                #elif !UNITY_EDITOR && UNITY_IOS
-                this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdpNativeStatic);
-                #elif !UNITY_EDITOR && (UNITY_WINRT)
-                // this automatically uses a separate assembly-file with Win8-style Socket usage (not possible in Editor)
-                #else
-                Type udpSocket = Type.GetType("ExitGames.Client.Photon.SocketUdp, Assembly-CSharp");
-                this.SocketImplementationConfig[ConnectionProtocol.Udp] = udpSocket;
-                if (udpSocket == null)
-                {
-                    #if SUPPORTED_UNITY
-                    UnityEngine.Debug.Log("Could not find a suitable C# socket class. This Photon3Unity3D.dll only supports native socket plugins.");
-                    #endif
-                }
-                #endif
+                websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcpNativeDynamic, Assembly-CSharp-firstpass", false);
             }
-            #pragma warning restore 0162
-
-
-            #if UNITY_WEBGL
-            if (this.TransportProtocol != ConnectionProtocol.WebSocket && this.TransportProtocol != ConnectionProtocol.WebSocketSecure)
+            if (websocketType == null)
             {
-                UnityEngine.Debug.Log("For UNITY_WEBGL, use protocol WebSocketSecure. Overriding currently set protcol " + this.TransportProtocol + ".");
-                this.TransportProtocol = ConnectionProtocol.WebSocketSecure;
+                websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcpNativeDynamic, Assembly-CSharp", false);
+            }
+            if (websocketType == null)
+            {
+                UnityEngine.Debug.LogError("UNITY_XBOXONE is defined but peer could not find SocketWebTcpNativeDynamic. Check your project files to make sure the native WSS implementation is available. Won't connect.");
+            }
+            #else
+            // to support WebGL export in Unity, we find and assign the SocketWebTcp class (if it's in the project).
+            // alternatively class SocketWebTcp might be in the Photon3Unity3D.dll
+            websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcp, PhotonWebSocket", false);
+            if (websocketType == null)
+            {
+                websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcp, Assembly-CSharp-firstpass", false);
+            }
+            if (websocketType == null)
+            {
+                websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcp, Assembly-CSharp", false);
             }
             #endif
 
-
-            // to support WebGL export in Unity, we find and assign the SocketWebTcpThread or SocketWebTcpCoroutine class (if it's in the project).
-            Type websocketType = Type.GetType("ExitGames.Client.Photon.SocketWebTcpThread, Assembly-CSharp", false);
-			websocketType = websocketType ?? Type.GetType("ExitGames.Client.Photon.SocketWebTcpThread, Assembly-CSharp-firstpass", false);
-            websocketType = websocketType ?? Type.GetType("ExitGames.Client.Photon.SocketWebTcpCoroutine, Assembly-CSharp", false);
-			websocketType = websocketType ?? Type.GetType("ExitGames.Client.Photon.SocketWebTcpCoroutine, Assembly-CSharp-firstpass", false);
             if (websocketType != null)
             {
                 this.SocketImplementationConfig[ConnectionProtocol.WebSocket] = websocketType;
                 this.SocketImplementationConfig[ConnectionProtocol.WebSocketSecure] = websocketType;
             }
+
+            #if NET_4_6 && (UNITY_EDITOR || !ENABLE_IL2CPP)
+            this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdpAsync);
+            this.SocketImplementationConfig[ConnectionProtocol.Tcp] = typeof(SocketTcpAsync);
+            #endif
         }
 
 
@@ -123,7 +122,7 @@ namespace Photon.Chat
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+
         /// <summary> Connects to NameServer. </summary>
         /// <returns>If the connection attempt could be sent.</returns>
         public bool Connect()
