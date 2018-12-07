@@ -81,12 +81,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
         SetLobbyPanelActive();
 
         PhotonNetwork.GameVersion = "1.0";
-        //if (!PhotonNetwork.IsConnected)
-            //PhotonNetwork.ConnectUsingSettings();
         _AuthService.SilentlyAuthenticate();
-
-        //PhotonNetwork.LocalPlayer.NickName = (PlayFabAuthService.PlayFabId.Split(new Char[] { '-' }))[0];
-
     }
 
 
@@ -108,7 +103,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
         SetLoginPanelActive();
     }
 
-    private void RequestPhotonToken(LoginResult obj)
+    private void RequestPhotonToken()
     {
         LogMessage("PlayFab authenticated. Requesting photon token...");
 
@@ -152,7 +147,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
     {
         userMessage.GetComponentInChildren<Text>().text
            = message;
-        Debug.Log("PlayFab + Photon Example: " + message);
+        Debug.Log("PlayFab : " + message);
     }
     public override void OnCustomAuthenticationFailed(string debugMessage)
     {

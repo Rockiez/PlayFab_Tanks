@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class PlayFabAuthService{
 
-    public delegate void LoginSuccessEvent(LoginResult success);
+    public delegate void LoginSuccessEvent();
     public static event LoginSuccessEvent OnLoginSuccess;
 
     public delegate void PlayFabErrorEvent(PlayFabError error);
@@ -51,7 +51,10 @@ public class PlayFabAuthService{
 
     public void AuthenticateEmailPassword()
     {
-
+        if (OnLogMessage != null)
+        {
+            OnLogMessage.Invoke("AuthenticateEmailPassword Start");
+        }
         //We have not opted for remember me in a previous session, so now we have to login the user with email & password.
         PlayFabClientAPI.LoginWithEmailAddress(new LoginWithEmailAddressRequest()
         {
@@ -68,10 +71,10 @@ public class PlayFabAuthService{
             if (OnLoginSuccess != null)
             {
                 //report login result back to subscriber
-                OnLoginSuccess.Invoke(result);
+                OnLoginSuccess.Invoke();
                 if (OnLogMessage != null)
                 {
-                    OnLogMessage.Invoke("AuthenticateEmailPassword");
+                    OnLogMessage.Invoke("AuthenticateEmailPassword Success");
                 }
             }
         }, (error) =>
@@ -90,6 +93,10 @@ public class PlayFabAuthService{
 
     private void AddAccountAndPassword()
     {
+        if (OnLogMessage != null)
+        {
+            OnLogMessage.Invoke("AddAccountAndPassword Start");
+        }
         //Any time we attempt to register a player, first silently authenticate the player.
         //This will retain the players True Origination (Android, iOS, Desktop)
         SilentlyAuthenticate((result) => {
@@ -103,6 +110,7 @@ public class PlayFabAuthService{
                     ErrorMessage = "Silent Authentication by Device failed"
 
                 });
+                RegisterAuthenticate(result);
             }
 
             //Note: If silent auth is success, which is should always be and the following 
@@ -123,10 +131,10 @@ public class PlayFabAuthService{
                     _sessionTicket = result.SessionTicket;
 
                     //Report login result back to subscriber.
-                    OnLoginSuccess.Invoke(result);
+                    OnLoginSuccess.Invoke();
                     if (OnLogMessage != null)
                     {
-                        OnLogMessage.Invoke("AddUsernamePassword");
+                        OnLogMessage.Invoke("AddUsernamePassword Success");
                     }
                 }
             }, (error) => {
@@ -145,26 +153,30 @@ public class PlayFabAuthService{
 
     private void RegisterAuthenticate(LoginResult result)
     {
+        if (OnLogMessage != null)
+        {
+            OnLogMessage.Invoke("RegisterAuthenticate Start");
+        }
         PlayFabClientAPI.RegisterPlayFabUser(new RegisterPlayFabUserRequest()
         {
             Username = Email.Replace("@","").Replace(".",""), //Because it is required & Unique and not supplied by User.
             Email = Email,
             Password = Password,
-        }, (addResult) =>
+        }, (registerResult) =>
         {
             if (OnLoginSuccess != null)
             {
                 //Store identity and session
-                _playFabId = result.PlayFabId;
-                _sessionTicket = result.SessionTicket;
+                _playFabId = registerResult.PlayFabId;
+                _sessionTicket = registerResult.SessionTicket;
 
                 //Report login result back to subscriber.
-                OnLoginSuccess.Invoke(result);
+                OnLoginSuccess.Invoke();
                 if (OnLogMessage != null)
                 {
-                    OnLogMessage.Invoke("RegisterAuthenticate");
+                    OnLogMessage.Invoke("RegisterAuthenticate Success");
                 }
-                AuthenticateEmailPassword();
+                //AuthenticateEmailPassword();
             }
         }, (Registererror) =>
         {
@@ -179,6 +191,10 @@ public class PlayFabAuthService{
 
     public void SilentlyAuthenticate(System.Action<LoginResult> callback = null)
     {
+        if (OnLogMessage != null)
+        {
+            OnLogMessage.Invoke("SilentlyAuthenticate Start");
+        }
         PlayFabClientAPI.LoginWithCustomID(new LoginWithCustomIDRequest()
         {
             TitleId = PlayFabSettings.TitleId,
@@ -195,7 +211,7 @@ public class PlayFabAuthService{
             if (callback == null && OnLoginSuccess != null)
             {
                 //report login result back to the subscriber
-                OnLoginSuccess.Invoke(result);
+                OnLoginSuccess.Invoke();
             }
             else if (callback != null)
             {
@@ -204,7 +220,7 @@ public class PlayFabAuthService{
             }
             if (OnLogMessage != null)
             {
-                OnLogMessage.Invoke("SilentlyAuthenticate");
+                OnLogMessage.Invoke("SilentlyAuthenticate Success");
             }
 
         }, (error) =>
