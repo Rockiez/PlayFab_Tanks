@@ -81,8 +81,10 @@ public class PlayFabAuthService{
         {
             if (OnPlayFabError != null)
             {
-                //Report error back to subscriber
-                OnPlayFabError.Invoke(error);
+                if (OnLogMessage != null)
+                {
+                    OnLogMessage.Invoke("AuthenticateEmailPassword Fail");
+                }
             }
             if (error.Error == PlayFabErrorCode.AccountNotFound)
             {
@@ -141,8 +143,11 @@ public class PlayFabAuthService{
                 if (OnPlayFabError != null)
                 {
                     //Report error result back to subscriber
-                    OnPlayFabError.Invoke(error);
-                    
+                    if (OnLogMessage != null)
+                    {
+                        OnLogMessage.Invoke("AddUsernamePassword Fail");
+                    }
+
                 }
                 if (error.Error == PlayFabErrorCode.AccountAlreadyLinked)
                     RegisterAuthenticate(result);
@@ -180,11 +185,9 @@ public class PlayFabAuthService{
             }
         }, (Registererror) =>
         {
-            if (OnPlayFabError != null)
+            if (OnLogMessage != null)
             {
-                //Report error result back to subscriber
-                OnPlayFabError.Invoke(Registererror);
-
+                OnLogMessage.Invoke("RegisterAuthenticate Fail");
             }
         });
     }
@@ -232,14 +235,15 @@ public class PlayFabAuthService{
             //report errro back to the subscriber
             if (callback == null && OnPlayFabError != null)
             {
-                OnPlayFabError.Invoke(error);
+                if (OnLogMessage != null)
+                {
+                    OnLogMessage.Invoke("SilentlyAuthenticate Fail");
+                }
             }
             else
             {
                 //make sure the loop completes, callback with null
                 callback.Invoke(null);
-                //Output what went wrong to the console.
-                Debug.LogError(error.GenerateErrorReport());
             }
 
         });

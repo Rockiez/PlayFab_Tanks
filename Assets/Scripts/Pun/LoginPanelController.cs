@@ -51,7 +51,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
 	public void SetLoginPanelActive(){
 		loginPanel.SetActive (true);			
-		userMessage.SetActive (false);				
+		//userMessage.SetActive (false);				
 		backButton.gameObject.SetActive (false);	
 		lobbyPanel.SetActive (false);				
 		if(roomPanel!=null)
@@ -59,16 +59,14 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 	}
 	public void SetLobbyPanelActive(){				
 		loginPanel.SetActive (false);			
-		userMessage.SetActive (true);				
+		//userMessage.SetActive (true);				
 		backButton.gameObject.SetActive (true);		
 		lobbyPanel.SetActive (true);				
 	}
 
 	public void ClickLogInButton(){							
-		SetLobbyPanelActive ();
         _AuthService.Email = Username.text;
         _AuthService.Password = Password.text;
-        //LogMessage("Email:*"+Username.text +"*   Password:*"+ Password.text+"*");
         _AuthService.AuthenticateEmailPassword();
 
         PhotonNetwork.GameVersion = "1.0";
@@ -134,6 +132,8 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
             PhotonNetwork.ConnectUsingSettings();
 
         PhotonNetwork.LocalPlayer.NickName = (PlayFabAuthService.PlayFabId.Split(new Char[] { '-' }))[0];
+        SetLobbyPanelActive();
+
 
     }
 
@@ -141,7 +141,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
     private void OnPlayFabError(PlayFabError obj)
     {
-        LogMessage(obj.GenerateErrorReport());
+        LogMessage(obj.ErrorMessage);
     }
     public void LogMessage(string message)
     {
