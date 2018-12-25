@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -12,11 +13,11 @@ MonoBehaviour:
   m_Name: PlayFabEditorPrefsSO
   m_EditorClassIdentifier: 
   DevAccountEmail: renhe@wicresoft.com
-  DevAccountToken: 8f57zd97wynykwrhg5ystw1159m63x8js4w1jjrskmtdpirpmf7s3g6e3tftud31gtaz19ekbzuk8hfwdw1g7oyh58dhkq4osoegn7c4a4d4kh4czjnkxw8u8qubwdkxpc3kp5wdcq1a876ts6zq9bhzw1hhea9ndps4npoxf5umbw3rezeqcfpw9oim54kmf6zf8eo8
+  DevAccountToken: pd6oyjraqab51ty8cnqxkmn3z9a4bzugjb55rm86hx636ac5iw6i1ydbnw86536pcyzfw35rkkbhrdgg4fh8tjcmokx9xxkyw1u8n8afyzq1w691oeb8i1khy8nq35a8kgfpyh8zgzn51xk7c3oaz4sef3enttptawkd9u9eojqpscsihn5dua5w4tqbs3q8anws94kf
   SelectedStudio: My Game Studio
   SdkPath: Assets/PlayFabSdk
   EdExPath: 
   LocalCloudScriptPath: 
   PanelIsShown: 0
-  curMainMenuIdx: 0
+  curMainMenuIdx: 1
   curSubMenuIdx: 0
