@@ -23,8 +23,8 @@ public class LobbyPanelController : MonoBehaviourPunCallbacks {
 	public Text pageMessage;
 	public GameObject createRoomPanel;
 	public GameObject roomPanel;
+    public List<RoomInfo> roomInfo;
 
-    private List<RoomInfo> roomInfo;
 	private int currentPageNumber;
 	private int maxPageNumber;	
 	private int roomPerPage = 4;	

@@ -26,8 +26,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
     void Start() {
         if (!(PhotonNetwork.IsConnected)) {
 			SetLoginPanelActive ();	
-			//username.text = PlayerPrefs.GetString ("Username");
-            
+
 		} 
 		else
 			SetLobbyPanelActive ();
@@ -51,7 +50,6 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
 	public void SetLoginPanelActive(){
 		loginPanel.SetActive (true);			
-		//userMessage.SetActive (false);				
 		backButton.gameObject.SetActive (false);	
 		lobbyPanel.SetActive (false);				
 		if(roomPanel!=null)
@@ -59,7 +57,6 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 	}
 	public void SetLobbyPanelActive(){				
 		loginPanel.SetActive (false);			
-		//userMessage.SetActive (true);				
 		backButton.gameObject.SetActive (true);		
 		lobbyPanel.SetActive (true);				
 	}

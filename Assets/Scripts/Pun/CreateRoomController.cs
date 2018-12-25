@@ -10,31 +10,26 @@ public class CreateRoomController : MonoBehaviourPunCallbacks {
 	public GameObject createRoomPanel;		
 	public GameObject roomLoadingLabel;		
 	public Text roomName;					
-	public Text roomNameHint;				
-	//public GameObject maxPlayerToggle;		
+	public Text WarnLabel;				
 
     private List<RoomInfo> roomList;
 
-    public override void OnRoomListUpdate(List<RoomInfo> roomList)
-    {
-        this.roomList = roomList;
-    }
 	public void ClickConfirmCreateRoomButton(){
-		RoomOptions roomOptions=new RoomOptions();
-        roomOptions.MaxPlayers = 4;
+        WarnLabel.text = "";
 
-		//RectTransform toggleRectTransform = maxPlayerToggle.GetComponent<RectTransform> ();
-		//int childCount = toggleRectTransform.childCount;
-		//for (int i = 0; i < childCount; i++) {
-		//	if (toggleRectTransform.GetChild (i).GetComponent<Toggle> ().isOn == true) {
-		//		roomOptions.MaxPlayers = 2;
-		//		break;
-		//	}
-		//}
+        RoomOptions roomOptions =new RoomOptions();
+        roomOptions.MaxPlayers = 4;
 
 		bool isRoomNameRepeat = false;
 
-	    if (this.roomList != null)
+        this.roomList = gameObject.GetComponentInParent<LobbyPanelController>().roomInfo;
+        if (roomName.text == string.Empty)
+        {
+            WarnLabel.text = "Room Name is Invalid";
+
+            return;
+        }
+        if (this.roomList != null)
 	    {
 	        foreach (RoomInfo info in this.roomList)
 	        {
@@ -47,7 +42,7 @@ public class CreateRoomController : MonoBehaviourPunCallbacks {
         }
 
 		if (isRoomNameRepeat) {
-			roomNameHint.text = "Repeated Room Name!";
+            WarnLabel.text = "Repeated Room Name!";
 		}
 		else {
 			PhotonNetwork.CreateRoom (roomName.text, roomOptions, TypedLobby.Default);	
@@ -56,7 +51,7 @@ public class CreateRoomController : MonoBehaviourPunCallbacks {
 	}
     public override void OnCreatedRoom()
     {
-        roomNameHint.text = "";
+        WarnLabel.text = "";
         createRoomPanel.SetActive(false);
         roomLoadingLabel.SetActive(true);
 
@@ -64,7 +59,7 @@ public class CreateRoomController : MonoBehaviourPunCallbacks {
     }
     
     public void ClickCancelCreateRoomButton(){
-		createRoomPanel.SetActive (false);		
-		roomNameHint.text = "";		
+		createRoomPanel.SetActive (false);
+        WarnLabel.text = "";		
 	}
 }
