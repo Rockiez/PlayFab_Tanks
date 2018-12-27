@@ -4,7 +4,7 @@ This repository is base on [Tanks! Tutorial](https://assetstore.unity.com/packag
 
 ## Demo illustrates:
   * Accounts uses Device ID &/or Email Authentication
-  * Example of how to create real-time multiplayer MOBA with Photon PUN
+  * Example of how to create real-time game with Photon PUN
   * Photon networking implementation using PUN, with some examples of Views, Syncs and RPCs
 
 ## Configuration and Setup
