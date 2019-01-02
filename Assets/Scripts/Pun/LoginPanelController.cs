@@ -73,7 +73,6 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
     public void ClickGuestButton()
     {
-        SetLobbyPanelActive();
 
         PhotonNetwork.GameVersion = "1.0";
         _AuthService.SilentlyAuthenticate();
