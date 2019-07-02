@@ -32,6 +32,8 @@ namespace Complete
         private TankManager m_GameWinner;           // Reference to the winner of the game.  Used to make an announcement of who won.
 
         private List<Transform> transforms;
+        private Transform transform;
+
         private int otherViewID;
         private int localTankNum;
         private int loadedPlayerNum;
@@ -100,7 +102,8 @@ namespace Complete
 
             var tr = PhotonView.Find(viewID).gameObject.transform;
             transforms.Add(tr);
-            SetCameraTargets();
+            SetCameraTarget();
+            //SetCameraTargets();
         }
 
         private void SpawnTank()
@@ -118,6 +121,7 @@ namespace Complete
 
             m_Tanks[localTankNum].Setup();
             transforms.Add(m_Tanks[localTankNum].m_Instance.transform);
+            transform = m_Tanks[localTankNum].m_Instance.transform;
             photonView.RPC("updateViewID", RpcTarget.Others, m_Tanks[localTankNum].m_Instance.GetPhotonView().ViewID, localTankNum);
             Debug.Log("SpawnTank");
 
@@ -127,9 +131,14 @@ namespace Complete
 
 
 
-        private void SetCameraTargets()
+        //private void SetCameraTargets()
+        //{
+        //    m_CameraControl.m_Targets = transforms.ToArray();
+        //}
+
+        private void SetCameraTarget()
         {
-            m_CameraControl.m_Targets = transforms.ToArray();
+            m_CameraControl.m_Target = transform;
         }
 
 
@@ -177,7 +186,7 @@ namespace Complete
             DisableTankControl();
 
             // Snap the camera's zoom and position to something appropriate for the reset tanks.
-            m_CameraControl.SetStartPositionAndSize();
+            //m_CameraControl.SetStartPositionAndSize();
 
             // Increment the round number and display text showing the players what round it is.
             m_RoundNumber++;

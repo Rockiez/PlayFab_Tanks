@@ -6,6 +6,7 @@ using Photon.Realtime;
 using PlayFab;
 using PlayFab.ClientModels;
 using System;
+using UnityEngine.XR;
 
 public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallbacks
 {
@@ -24,6 +25,7 @@ public class LoginPanelController : MonoBehaviourPunCallbacks, IConnectionCallba
 
 
     void Start() {
+        //XRDevice.SetTrackingSpaceType(TrackingSpaceType.Stationary);
         if (!(PhotonNetwork.IsConnected)) {
 			SetLoginPanelActive ();	
 

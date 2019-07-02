@@ -116,6 +116,7 @@ namespace Complete
         }
 
 
+
         private void Move ()
         {
             // Create a vector in the direction the tank is facing with a magnitude based on the input, speed and the time between frames.
@@ -125,17 +126,36 @@ namespace Complete
             m_Rigidbody.MovePosition(m_Rigidbody.position + movement);
         }
 
+        float angle_360(Vector3 from_, Vector3 to_)
+        {
+            Vector3 v3 = Vector3.Cross(from_, to_);
+            if (v3.z > 0)
+                return Vector3.Angle(from_, to_);
+            else
+                return 360 - Vector3.Angle(from_, to_);
+
+        }
 
         private void Turn ()
         {
-            // Determine the number of degrees to be turned based on the input, speed and time between frames.
-            float turn = m_TurnInputValue * m_TurnSpeed * Time.deltaTime;
+            var angle = angle_360(m_Rigidbody.transform.forward, Camera.main.transform.forward);
+            //var q = Quaternion.FromToRotation(m_Rigidbody.transform.forward, Camera.main.transform.forward);
+            //var a = q.y;
+
+
+            m_Rigidbody.MoveRotation(m_Rigidbody.rotation * Quaternion.Euler(0f, Camera.main.transform.rotation.y, 0f));
+
+
+            //// Determine the number of degrees to be turned based on the input, speed and time between frames.
+            //float turn = m_TurnInputValue * m_TurnSpeed * Time.deltaTime;
 
             // Make this into a rotation in the y axis.
-            Quaternion turnRotation = Quaternion.Euler (0f, turn, 0f);
+            //Quaternion turnRotation = Quaternion.Euler (0f, turn, 0f);
 
-            // Apply this rotation to the rigidbody's rotation.
-            m_Rigidbody.MoveRotation (m_Rigidbody.rotation * turnRotation);
+            //// Apply this rotation to the rigidbody's rotation.
+            //m_Rigidbody.MoveRotation (m_Rigidbody.rotation * turnRotation);
+
+
         }
     }
 }
